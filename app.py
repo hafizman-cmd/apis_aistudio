@@ -121,7 +121,7 @@ if api_token:
     os.environ["REPLICATE_API_TOKEN"] = api_token
 
 # --- MAIN UI ---
-st.title("Apis Image Studio")
+st.title("⚡ Apis Image Studio")
 st.markdown("Create and edit AI images with minimal effort")
 
 tab1, tab2 = st.tabs(["🎨 Generate", "✏️ Edit"])
@@ -142,8 +142,9 @@ with tab1:
         else:
             with st.spinner("Creating magic..."):
                 try:
+                    # UPDATED: Using prunaai/p-image for generation
                     output = replicate.run(
-                        "black-forest-labs/flux-2-klein-4b",
+                        "prunaai/p-image",
                         input={"prompt": prompt, "width": w, "height": h}
                     )
                     img_url = str(output[0])
@@ -155,8 +156,7 @@ with tab1:
                         use_container_width=True
                     )
 
-                    # --- FIX 3: BEAUTIFUL, CENTERED BUTTON ROW ---
-                    # We use 4 equal columns so they sit perfectly side-by-side
+                    # --- BEAUTIFUL, CENTERED BUTTON ROW ---
                     col1, col2, col3, col4 = st.columns(4)
                     
                     with col1:
@@ -190,9 +190,10 @@ with tab2:
         if st.button("Apply Edit", type="primary", use_container_width=True):
             with st.spinner("Processing edit..."):
                 try:
+                    # UPDATED: Using prunaai/p-image-edit for editing functionality
                     output = replicate.run(
-                        "black-forest-labs/flux-2-klein-4b",
-                        input={"prompt": edit_p, "input_image_0": uploaded}
+                        "prunaai/p-image-edit",
+                        input={"prompt": edit_p, "image": uploaded}
                     )
                     st.image(
                         str(output[0]), 
