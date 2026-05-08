@@ -145,7 +145,6 @@ with tab1:
                         input={"prompt": prompt, "width": w, "height": h}
                     )
                     
-                    # FIX: Pruna AI returns a single object, so we drop the [0]
                     img_url = str(output)
 
                     st.image(
@@ -160,7 +159,10 @@ with tab1:
                         img_data = requests.get(img_url).content
                         st.download_button("💾 Save", data=img_data, file_name="apis_studio.png", mime="image/png", use_container_width=True)
                     with col2:
-                        st.link_button("📋 Link", img_url, use_container_width=True)
+                        # FIX: Using the direct output object is better for link generation
+                        # replicate.com URL format
+                        replicate_url = f"https://replicate.com/p/{output.id}" if hasattr(output, 'id') else img_url
+                        st.link_button("📋 Link", replicate_url, use_container_width=True)
                     with col3:
                         wa_url = f"https://wa.me/?text=Check out this AI art I made: {img_url}"
                         st.link_button("📱 WhatsApp", wa_url, use_container_width=True)
@@ -187,12 +189,12 @@ with tab2:
         if st.button("Apply Edit", type="primary", use_container_width=True):
             with st.spinner("Processing edit..."):
                 try:
+                    # UPDATED FIX: We must send the RAW BYTES of the file, not the file object.
                     output = replicate.run(
                         "prunaai/p-image-edit",
-                        input={"prompt": edit_p, "image": uploaded}
+                        input={"prompt": edit_p, "image": uploaded.getvalue()} # <--- THIS IS THE FIX
                     )
                     
-                    # FIX: Pruna AI returns a single object here too
                     edited_img_url = str(output)
                     
                     st.image(
@@ -210,8 +212,11 @@ with tab2:
                         use_container_width=True
                     )
                 except Exception as e:
-                    st.error(f"Edit failed: {e}")
+                    # Capture specific error messages from the Replicate API
+                    if "422" in str(e):
+                        st.error("Edit failed: The server rejected the image format. Try converting to a standard JPG/PNG.")
+                    else:
+                        st.error(f"Edit failed: {e}")
 
 # ------------------- FOOTER -------------------
 st.markdown("<p class='footer-text'>© 2026 Apis Image Studio – Modern AI Art Generator</p>", unsafe_allow_html=True)
-#test
