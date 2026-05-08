@@ -38,14 +38,14 @@ h1, h2, h3, p, span, label, div[data-testid="stMarkdownContainer"] > p {
     color: #1e293b !important;
 }
 
-/* --- FIX 1: THE BLINKING CURSOR & TEXT INPUTS --- */
+/* --- THE BLINKING CURSOR & TEXT INPUTS --- */
 .stTextArea textarea,
 .stTextInput input {
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
     background-color: #ffffff !important;
     color: #0f172a !important; 
-    caret-color: #6c63ff !important; /* Sleek purple blinking cursor */
+    caret-color: #6c63ff !important; 
     padding: 0.8rem !important;
 }
 .stTextArea textarea:focus, .stTextInput input:focus {
@@ -53,8 +53,7 @@ h1, h2, h3, p, span, label, div[data-testid="stMarkdownContainer"] > p {
     box-shadow: 0 0 0 1px #6c63ff !important;
 }
 
-/* --- FIX 2: UNIFIED, USER-FRIENDLY BUTTONS --- */
-/* The main "Generate" button */
+/* --- UNIFIED, USER-FRIENDLY BUTTONS --- */
 button[kind="primary"] {
     background-color: #6c63ff !important;
     color: white !important;
@@ -71,7 +70,6 @@ button[kind="primary"]:hover {
     box-shadow: 0 6px 15px rgba(108,99,255,0.3) !important;
 }
 
-/* The Download and Share buttons under the image */
 .stDownloadButton > button, 
 [data-testid="stLinkButton"] > a {
     background-color: #f8fafc !important;
@@ -91,7 +89,7 @@ button[kind="primary"]:hover {
 [data-testid="stLinkButton"] > a:hover {
     background-color: #f1f5f9 !important;
     border-color: #cbd5e1 !important;
-    color: #6c63ff !important; /* Turns purple on hover */
+    color: #6c63ff !important; 
     transform: translateY(-1px);
 }
 
@@ -142,28 +140,27 @@ with tab1:
         else:
             with st.spinner("Creating magic..."):
                 try:
-                    # UPDATED: Using prunaai/p-image for generation
                     output = replicate.run(
                         "prunaai/p-image",
                         input={"prompt": prompt, "width": w, "height": h}
                     )
-                    img_url = str(output[0])
+                    
+                    # FIX: Pruna AI returns a single object, so we drop the [0]
+                    img_url = str(output)
 
-                    # Full-size preview with the new helpful caption
                     st.image(
                         img_url, 
                         caption="✨ Hover over image and click top-right arrows to expand (Press ESC to close)", 
                         use_container_width=True
                     )
 
-                    # --- BEAUTIFUL, CENTERED BUTTON ROW ---
                     col1, col2, col3, col4 = st.columns(4)
                     
                     with col1:
                         img_data = requests.get(img_url).content
                         st.download_button("💾 Save", data=img_data, file_name="apis_studio.png", mime="image/png", use_container_width=True)
                     with col2:
-                        st.link_button("📋 Link", f"https://replicate.com/{output[0]}", use_container_width=True)
+                        st.link_button("📋 Link", img_url, use_container_width=True)
                     with col3:
                         wa_url = f"https://wa.me/?text=Check out this AI art I made: {img_url}"
                         st.link_button("📱 WhatsApp", wa_url, use_container_width=True)
@@ -190,19 +187,21 @@ with tab2:
         if st.button("Apply Edit", type="primary", use_container_width=True):
             with st.spinner("Processing edit..."):
                 try:
-                    # UPDATED: Using prunaai/p-image-edit for editing functionality
                     output = replicate.run(
                         "prunaai/p-image-edit",
                         input={"prompt": edit_p, "image": uploaded}
                     )
+                    
+                    # FIX: Pruna AI returns a single object here too
+                    edited_img_url = str(output)
+                    
                     st.image(
-                        str(output[0]), 
+                        edited_img_url, 
                         caption="✨ Hover over image and click top-right arrows to expand (Press ESC to close)", 
                         use_container_width=True
                     )
 
-                    # Download edited image
-                    edited_data = requests.get(str(output[0])).content
+                    edited_data = requests.get(edited_img_url).content
                     st.download_button(
                         "💾 Save Edited Image",
                         data=edited_data,
@@ -215,3 +214,4 @@ with tab2:
 
 # ------------------- FOOTER -------------------
 st.markdown("<p class='footer-text'>© 2026 Apis Image Studio – Modern AI Art Generator</p>", unsafe_allow_html=True)
+#test
